@@ -67,13 +67,13 @@ class ViewController: UIViewController {
         buttonsView.translatesAutoresizingMaskIntoConstraints = false
         
         
-        cluesLabel.backgroundColor = .red
-        answersLabel.backgroundColor = .blue
-        scoreLabel.backgroundColor = .gray
-        currentAnswer.backgroundColor = .cyan
-        submitButton.backgroundColor = .lightGray
-        clearButton.backgroundColor = .magenta
-        buttonsView.backgroundColor = .systemIndigo
+//        cluesLabel.backgroundColor = .red
+//        answersLabel.backgroundColor = .blue
+//        scoreLabel.backgroundColor = .gray
+//        currentAnswer.backgroundColor = .cyan
+//        submitButton.backgroundColor = .lightGray
+//        clearButton.backgroundColor = .magenta
+//        buttonsView.backgroundColor = .systemIndigo
         
         
         view.addSubview(scoreLabel)
@@ -116,6 +116,25 @@ class ViewController: UIViewController {
             buttonsView.bottomAnchor.constraint(equalTo: view.layoutMarginsGuide.bottomAnchor, constant: -20)
             
         ])
+        
+        let width = 150
+        let height = 80
+        
+        for row in 0..<4{
+            for col in 0..<5{
+                let letterButton = UIButton(type: .system)
+                letterButton.titleLabel?.font = UIFont.systemFont(ofSize: 36)
+                
+                letterButton.setTitle(String(row) + String(col), for: .normal)
+                
+                let frame = CGRect(x: col * width, y: row * height, width: width, height: height)
+                letterButton.frame = frame
+                
+                buttonsView.addSubview(letterButton)
+                
+                letterButtons.append(letterButton)
+            }
+        }
     }
     
     
