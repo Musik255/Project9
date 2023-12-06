@@ -20,7 +20,11 @@ class ViewController: UIViewController {
     var activatedButtons = [UIButton]()
     var solutions = [String]()
     
-    var score = 0
+    var score = 0{
+        didSet{
+            scoreLabel.text = "Score: \(score)"
+        }
+    }
     var level = 1
     
     
@@ -62,9 +66,10 @@ class ViewController: UIViewController {
         currentAnswer.textAlignment = .center
         currentAnswer.font = UIFont.systemFont(ofSize: 44)
         currentAnswer.isUserInteractionEnabled = false
+        currentAnswer.borderStyle = .line
         
         submitButton.translatesAutoresizingMaskIntoConstraints = false
-        submitButton.setTitle("ОТПРАВИТЬ ОТВЕТ", for: .normal)
+        submitButton.setTitle("ОТПРАВИТЬ", for: .normal)
         submitButton.addTarget(self, action: #selector(submitTapped), for: .touchUpInside)
         
         clearButton.translatesAutoresizingMaskIntoConstraints = false
@@ -81,7 +86,7 @@ class ViewController: UIViewController {
 //        submitButton.backgroundColor = .lightGray
 //        clearButton.backgroundColor = .magenta
 //        buttonsView.backgroundColor = .systemIndigo
-//        
+        
         
         view.addSubview(scoreLabel)
         view.addSubview(cluesLabel)
@@ -108,13 +113,13 @@ class ViewController: UIViewController {
             currentAnswer.widthAnchor.constraint(equalTo: view.widthAnchor, multiplier: 0.5),
             currentAnswer.topAnchor.constraint(equalTo: cluesLabel.bottomAnchor, constant: 20),
                 
-            submitButton.topAnchor.constraint(equalTo: currentAnswer.bottomAnchor),
-            submitButton.centerXAnchor.constraint(equalTo: view.centerXAnchor, constant: -100),
-            submitButton.heightAnchor.constraint(equalToConstant: 44),
-            
-            clearButton.centerXAnchor.constraint(equalTo: view.centerXAnchor, constant: 300),
             clearButton.centerYAnchor.constraint(equalTo: currentAnswer.centerYAnchor),
+            clearButton.centerXAnchor.constraint(equalTo: view.centerXAnchor, constant: -305),
             clearButton.heightAnchor.constraint(equalToConstant: 44),
+            
+            submitButton.centerXAnchor.constraint(equalTo: view.centerXAnchor, constant: 305),
+            submitButton.centerYAnchor.constraint(equalTo: currentAnswer.centerYAnchor),
+            submitButton.heightAnchor.constraint(equalToConstant: 44),
             
             buttonsView.widthAnchor.constraint(equalToConstant: 750),
             buttonsView.heightAnchor.constraint(equalToConstant: 320),
@@ -134,9 +139,9 @@ class ViewController: UIViewController {
                 
                 letterButton.setTitle(String(row) + String(col), for: .normal)
                 
-                let frame = CGRect(x: col * width, y: row * height, width: width, height: height)
+                let frame = CGRect(x: col * (width + 1) - 1, y: row * (height + 1), width: width, height: height)
                 letterButton.frame = frame
-                
+                letterButton.layer.borderWidth = 1
                 buttonsView.addSubview(letterButton)
                 
                 letterButtons.append(letterButton)
@@ -161,7 +166,12 @@ class ViewController: UIViewController {
     }
     @objc func submitTapped(_ sender: UIButton){
         guard let answerText = currentAnswer.text else { return }
+        if answerText == ""{
+            return
+        }
         if let solutionPosition = solutions.firstIndex(of: answerText){
+            
+            solutions[solutionPosition] = ""
             activatedButtons.removeAll()
             
             var splitAnswers = answersLabel.text?.components(separatedBy: "\n")
@@ -171,11 +181,30 @@ class ViewController: UIViewController {
             currentAnswer.text = ""
             score += 1
             
-            if score % 7 == 0{
-                let alertController = UIAlertController(title: "Супер! Все слова отгаданы!", message: "Готовы приступить к следующему уровню?", preferredStyle: .alert)
-                alertController.addAction(UIAlertAction(title: "Поехали!", style: .default, handler: levelUp))
-                present(alertController, animated: true)
+            
+            for solution in solutions {
+                if solution != ""{
+                     return
+                }
+                
             }
+            
+            let alertController = UIAlertController(title: "Супер! Все слова отгаданы!", message: "Готовы приступить к следующему уровню?", preferredStyle: .alert)
+            alertController.addAction(UIAlertAction(title: "Поехали!", style: .default, handler: levelUp))
+            present(alertController, animated: true)
+            
+        }
+        else{
+            let alertController = UIAlertController(title: "Ошибка", message: "Такое слово не было загадано", preferredStyle: .alert)
+            alertController.addAction(UIAlertAction(title: "Попробовать еще раз", style: .default))
+            currentAnswer.text = ""
+            
+            for button in activatedButtons{
+                button.isHidden = false
+            }
+            activatedButtons.removeAll()
+            score -= 1
+            present(alertController, animated: true)
         }
         
     }
@@ -197,9 +226,8 @@ class ViewController: UIViewController {
         if let levelFileURL = Bundle.main.url(forResource: "level\(level)", withExtension: "txt"){
             if let levelContents = try? String(contentsOf: levelFileURL){
                 var lines = levelContents.components(separatedBy: "\n")
-                print(lines)
+                
                 lines.remove(at: lines.count - 1)
-                print(lines)
                 lines.shuffle()
                 
                 for (index, line) in lines.enumerated() {
